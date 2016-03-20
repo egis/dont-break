@@ -206,7 +206,6 @@ function testDependent(options, dependent) {
         throw err;
       });
     })
-    .then(testModuleInFolder)
     .then(testCurrentModuleInDependent)
     .then(testModuleInFolder);
 }
