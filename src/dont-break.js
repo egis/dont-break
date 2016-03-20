@@ -183,8 +183,9 @@ function testDependent(options, dependent) {
     .then(function printMessage(folder) {
       var installedPackage = readJSON(join(folder, 'package.json'));
       var moduleVersion = installedPackage.version;
-      var currentVersion = installedPackage.dependencies[pkg.name] ||
-        installedPackage.devDependencies[pkg.name];
+      var currentVersion = (installedPackage.dependencies || {})[pkg.name] ||
+          (installedPackage.devDependencies || {})[pkg.name] ||
+          (installedPackage.peerDependencies || {})[pkg.name];
       banner('installed', moduleName + '@' + moduleVersion,
         '\ninto', folder,
         '\ncurrently uses', pkg.name + '@' + currentVersion,
