@@ -174,7 +174,7 @@ function testDependent(options, dependent) {
     prefix: toFolder
   }).timeout(timeoutSeconds * 1000, 'install timed out for ' + moduleName)
     .then(function formFullFolderName() {
-      return join(toFolder, 'node_modules', moduleName);
+      return join(toFolder, 'lib', 'node_modules', moduleName);
     }).then(function checkInstalledFolder(folder) {
       la(check.unemptyString(folder), 'expected folder', folder);
       la(exists(folder), 'expected existing folder', folder);
