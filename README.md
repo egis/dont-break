@@ -32,7 +32,15 @@ I need to make some modifications to be able to use dont-break in my organisatio
 
 ## Install
 
-    npm install -g dont-break
+If you want to give this fork a try put in package.json:
+```javascript
+    devDependencies: {
+    ...
+       "dont-break": "github:artemv/dont-break#670d8d30b63c24469d79139e9a5323a9fdf563bf",
+    ...
+    }
+```
+    npm install
 
 ## Use
 
