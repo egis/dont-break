@@ -20,6 +20,16 @@ Checks if the node module in the current folder breaks unit tests for specified 
 [dont-break-devdependencies-image]: https://david-dm.org/bahmutov/dont-break/dev-status.png
 [dont-break-devdependencies-url]: https://david-dm.org/bahmutov/dont-break#info=devDependencies
 
+## This fork
+
+I need to make some modifications to be able to use dont-break in my organisation's configuration having private inter-dependent NPM packages. Changes list:
+* when using dont-break for dependent package B that uses package A, allowed B's package.json to
+ * use A as peerDependency
+ * not have dependencies section
+* cancelled pre-testing B in its current state - this step is already done already in B release cycle. Our packages' tests take plenty of time so it was important to not have extra work here.
+* told dont-break that the package B is installed to 'lib/node_modules' subfolder of tmp dir used for 'node_modules' - this is just how npm-util's install works in our configuration.
+* updated npm-utils dependency (now it's 1.5.1 instead of 0.3.0). I hoped that it would help me use dont-break for private NPM packages, but in the end I came to solution on CI env level, so not sure if this was important. Kept the new version anyway.
+
 ## Install
 
     npm install -g dont-break
