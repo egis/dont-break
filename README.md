@@ -22,7 +22,7 @@ Checks if the node module in the current folder breaks unit tests for specified 
 
 ## This fork
 
-I need to make some modifications to be able to use dont-break in my organisation's configuration having private inter-dependent NPM packages. Changes list:
+I needed to make some modifications to be able to use dont-break in my organisation's configuration having private inter-dependent NPM packages. Changes list:
 * when using dont-break for dependent package B that uses package A, allowed B's package.json to
  * use A as peerDependency
  * not have dependencies section
