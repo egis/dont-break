@@ -122,6 +122,7 @@ function testInFolder(testCommand, folder) {
   la(check.unemptyString(folder), 'expected folder', folder);
   var cwd = process.cwd();
   process.chdir(folder);
+  console.log('testing in', folder);
   return npmTest(testCommand).then(function () {
     console.log('tests work in', folder);
     return folder;
@@ -145,10 +146,10 @@ function testCurrentModuleInDependent(dependentFolder) {
   la(exists(fullPath), 'cannot find', fullPath);
 
   var thisFolder = join(process.cwd(), '*');
-  console.log('Copying folder', quote(thisFolder), '\nto folder', quote(fullPath));
+  console.log('Copying folder', quote(thisFolder), '\nto folder', quote(fullPath), new Date());
   cp('-rf', thisFolder, fullPath);
 
-  console.log('copied', thisFolder, 'to', fullPath);
+  console.log('copied', thisFolder, 'to', fullPath, new Date());
   return dependentFolder;
 }
 
