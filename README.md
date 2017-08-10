@@ -21,9 +21,25 @@ Checks if the node module in the current folder breaks unit tests for specified 
 ## This fork
 
 I needed to make some modifications to be able to use dont-break in my organisation's configuration having private inter-dependent NPM packages. Changes list:
-* made it support custom test commands for dependent projects
-* when using dont-break for dependent package B that uses package A, allowed B's package.json to use A as peerDependency
+* support custom test commands for dependent projects
+* support custom post-install commands for dependent projects - if you need something special to install their dev dependencies
+* when using dont-break for dependent package A that uses package "my-package", allowed A to use "my-package" as peerDependency
 
+Example .dont-break.json:
+```
+[
+  {
+    "name": "packageA",
+    "postinstall": "npm run update",
+    "test": "dont-break-tests-with-my-package.sh"
+  }, {
+    "name": "packageB",
+    "postinstall": "npm run update",
+    "test": "dont-break-tests-with-my-package.sh"
+  }
+]
+
+```
 ## Install
 If you want to give this fork a try put in package.json:
 ```javascript
