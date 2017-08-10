@@ -36,7 +36,7 @@ If you want to give this fork a try put in package.json:
 ```javascript
     devDependencies: {
     ...
-       "dont-break": "github:artemv/dont-break#670d8d30b63c24469d79139e9a5323a9fdf563bf",
+       "dont-break": "github:artemv/dont-break",
     ...
     }
 ```
