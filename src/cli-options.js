@@ -1,9 +1,11 @@
-var log = require('debug')('dont');
-function list(val) {
-  return val.split(',');
+'use strict'
+
+var debug = require('debug')('dont-break')
+function list (val) {
+  return val.split(',')
 }
 
-var program = require('commander');
+var program = require('commander')
 program
   .option('-t, --top-downloads <n>',
     'Fetch N most downloaded dependent modules, save and check', parseInt)
@@ -13,9 +15,9 @@ program
     'Check if current code breaks given dependent project(s)', list)
   .option('--timeout <N seconds>',
     'Wait for N seconds when installing a package', parseInt)
-  .parse(process.argv);
+  .parse(process.argv)
 
-log('command line options');
-log(program);
+debug('command line options')
+debug(program)
 
-module.exports = program;
+module.exports = program
