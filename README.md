@@ -5,38 +5,47 @@ Checks if the node module in the current folder breaks unit tests for specified 
 [Relevant discussion at npm](https://github.com/npm/npm/issues/6510),
 [Do not break dependant modules](http://glebbahmutov.com/blog/do-not-break-dependant-modules/).
 
-[![NPM][dont-break-icon] ][dont-break-url]
-
 [![Build status][dont-break-ci-image] ][dont-break-ci-url]
-[![dependencies][dont-break-dependencies-image] ][dont-break-dependencies-url]
-[![devdependencies][dont-break-devdependencies-image] ][dont-break-devdependencies-url]
+[![npm][dont-break-npm-image]](dont-break-npm-url)
+[![semantic-release][semantic-image] ][semantic-url]
 
-[dont-break-icon]: https://nodei.co/npm/dont-break.png?downloads=true
+[dont-break-icon]: https://nodei.co/npm/dont-break.svg?downloads=true
 [dont-break-url]: https://npmjs.org/package/dont-break
-[dont-break-ci-image]: https://travis-ci.org/bahmutov/dont-break.png?branch=master
+[dont-break-ci-image]: https://travis-ci.org/bahmutov/dont-break.svg?branch=master
 [dont-break-ci-url]: https://travis-ci.org/bahmutov/dont-break
-[dont-break-dependencies-image]: https://david-dm.org/bahmutov/dont-break.png
-[dont-break-dependencies-url]: https://david-dm.org/bahmutov/dont-break
-[dont-break-devdependencies-image]: https://david-dm.org/bahmutov/dont-break/dev-status.png
-[dont-break-devdependencies-url]: https://david-dm.org/bahmutov/dont-break#info=devDependencies
+[dont-break-npm-url]: https://img.shields.io/npm/dm/dont-break
+[dont-break-npm-image]: https://img.shields.io/npm/dm/dont-break.svg?maxAge=2592000
+[semantic-image]: https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
+[semantic-url]: https://github.com/semantic-release/semantic-release
 
 ## This fork
 
 I needed to make some modifications to be able to use dont-break in my organisation's configuration having private inter-dependent NPM packages. Changes list:
-* when using dont-break for dependent package B that uses package A, allowed B's package.json to
- * use A as peerDependency
- * not have dependencies section
-* cancelled pre-testing B in its current state - this step is already done in B release cycle. Our packages' tests take plenty of time so it was important to not have extra work here.
-* told dont-break that the package B is installed to 'lib/node_modules' subfolder of tmp dir instead of 'node_modules' - this is just how npm-util's install works in our configuration (having npm 0.12.0).
-* upgraded npm-utils dependency (now it's 1.5.1 instead of 0.3.0). I hoped that it would help me use dont-break for private NPM packages, but in the end I came to solution on CI env level, so not sure if npm-utils upgrade was important. Kept the new version anyway.
+* support custom test commands for dependent projects
+* support custom post-install commands for dependent projects - if you need something special to install their dev dependencies
+* when using dont-break for dependent package A that uses package "my-package", allowed A to use "my-package" as peerDependency
 
+Example .dont-break.json:
+```
+[
+  {
+    "name": "packageA",
+    "postinstall": "npm run update",
+    "test": "dont-break-tests-with-my-package.sh"
+  }, {
+    "name": "packageB",
+    "postinstall": "npm run update",
+    "test": "dont-break-tests-with-my-package.sh"
+  }
+]
+
+```
 ## Install
-
 If you want to give this fork a try put in package.json:
 ```javascript
     devDependencies: {
     ...
-       "dont-break": "github:artemv/dont-break#670d8d30b63c24469d79139e9a5323a9fdf563bf",
+       "dont-break": "github:artemv/dont-break",
     ...
     }
 ```
@@ -44,16 +53,10 @@ If you want to give this fork a try put in package.json:
 
 ## Use
 
-* Create `.dont-break` file in the root of your package, list module names (one per line) that you would like
-to test.
-* Run `dont-break` any time to test latest version of each dependent module against the curent code
-
-Picking projects to test manually is a judgement call. Dont-break can fetch top N most downloaded
-or most starred dependent modules and save the list.
-* run `dont-break --top-downloads <N>` to find top N most downloaded dependent modules,
-save to `.dont-break` and check. This will overwrite `.dont-break` file.
-* run `dont-break --top-starred <N>` to find top N most starred dependent modules,
-save to `.dont-break` and check.
+* Create `.dont-break.json` file in the root of your package,
+  list module names that you would like to test as an array.
+* Run `dont-break` any time to test latest version of each dependent module
+  against the curent code
 
 ## Example
 
@@ -63,10 +66,10 @@ save to `.dont-break` and check.
 2. Second project `foo-user` depends on `foo`.
 
 `foo-user` only works if it gets string `foo` from the module it depends on, like this:
-
-    var str = require('foo');
-    console.assert(str === 'foo', 'value of foo should be "foo", but is ' + str);
-
+```js
+var str = require('foo');
+console.assert(str === 'foo', 'value of foo should be "foo", but is ' + str);
+```
 `foo` has only a single release 0.1.0 that works for `foo-user` project.
 
 The author of `foo` changes code to be `module.exports = 'bar';` and releases it as 0.2.0.
@@ -77,54 +80,82 @@ changes.
 `foo-user` is now broken!
 
 Instead, before publishing new version to NPM, project `foo` can create a file in its
-project folder `.dont-break` with names of dependent projects to test
-
-    echo foo-user > .dont-break
-
+project folder `.dont-break.json` with names of dependent projects to test
+```bash
+echo '["foo-user"]' > .dont-break.json
+```
 You can check if the current code breaks listed dependent project by running
 
-    dont-break
+```bash
+dont-break
+```
 
-This will install each dependent project from `.dont-break` file into `/tmp/dont-break...` folder,
+This will install each dependent project from `.dont-break.json` file into `/tmp/dont-break...` folder,
 will run the dependent's unit tests using `npm test` to make sure they work initially, then
 will copy the current project into the temp folder, overwriting the previous working version.
 Then it will run the tests again, throwing an exception if they stopped working.
 
 In the example case, it will report something like this
-
-    $ dont-break
-    dependents [ 'foo-user' ]
-    testing foo-user
-      installing foo-user
-    installed into /tmp/foo@0.0.0-against-foo-user
-      npm test
-    tests work in /tmp/foo@0.0.0-against-foo-user/lib/node_modules/foo-user
-    copied /Users/gleb/git/foo/* to /tmp/foo@0.0.0-against-foo-user/lib/node_modules/foo-user/node_modules/foo
-      npm test
-    npm test returned 1
-    test errors:
-    AssertionError: value of foo should be "foo", but is bar
-    npm ERR! Test failed.  See above for more details.
-    npm ERR! not ok code 0
-    tests did not work in /tmp/foo@0.0.0-against-foo-user/lib/node_modules/foo-user
-    code 1
-    FAIL: Current version break dependents
-
+```bash
+$ dont-break
+dependents [ 'foo-user' ]
+testing foo-user
+  installing foo-user
+installed into /tmp/foo@0.0.0-against-foo-user
+  npm test
+tests work in /tmp/foo@0.0.0-against-foo-user/lib/node_modules/foo-user
+copied /Users/gleb/git/foo/* to /tmp/foo@0.0.0-against-foo-user/lib/node_modules/foo-user/node_modules/foo
+  npm test
+npm test returned 1
+test errors:
+AssertionError: value of foo should be "foo", but is bar
+npm ERR! Test failed.  See above for more details.
+npm ERR! not ok code 0
+tests did not work in /tmp/foo@0.0.0-against-foo-user/lib/node_modules/foo-user
+code 1
+FAIL: Current version break dependents
+```
 The message clearly tells you that the dependent projects as they are right now cannot
 upgrade to the version you are about to release.
 
-## Custom test command
+## Dependencies
+
+You can specify GitHub repos as dependencies, because they most likely will
+have tests. For example in `.dont-break.json`
+
+```js
+// you can use JavaScript comments in this file .dont-break.json
+[
+  "https://github.com/bahmutov/dont-break-bar"
+]
+```
+
+Picking projects to test manually is a judgement call.
+Dont-break can fetch top N most downloaded
+or most starred dependent modules and save the list.
+* run `dont-break --top-downloads <N>` to find top N most downloaded dependent modules,
+save to `.dont-break.json` and check.
+* run `dont-break --top-starred <N>` to find top N most starred dependent modules,
+save to `.dont-break.json` and check.
+
+The above commands overwrite `.dont-break.json` file.
+
+## Custom test command (in progress)
 
 You can specify a custom test command per dependent module. Separate the name of the module
 from the test command using `:` For example, to run `grunt test` for `foo-module-name`,
-but default command for module `bar-name`, list in `.dont-break` the following:
+but default command for module `bar-name`, list in `.dont-break.json` the following:
 
-    foo-module-name: grunt test
-    bar-name
+```
+foo-module-name: grunt test
+bar-name
+```
 
 You can also specify a longer installation time out, in seconds, using CLI option
 
-    dont-break --timeout 30
+```
+dont-break --timeout 30
+```
 
 ## Related
 
@@ -139,22 +170,26 @@ against the dependent projects using `dont-break`. For example, the project
 are run on [TravisCI](https://travis-ci.org/bahmutov/boggle) using
 pretty standard [.travis.yml](https://github.com/bahmutov/boggle/blob/master/.travis.yml) file
 
-    language: node_js
-    node_js:
-      - "0.12"
-      - "4"
-    branches:
-      only:
-        - master
-    before_script:
-      - npm install -g grunt-cli
+```yml
+language: node_js
+node_js:
+  - "0.12"
+  - "4"
+branches:
+  only:
+    - master
+before_script:
+  - npm install -g grunt-cli
+```
 
 Then I setup a separate build service on [CircleCi](https://circleci.com/gh/bahmutov/boggle)
 just to run the `npm run dont-break` command from the `package.json`
 
-    "scripts": {
-        "dont-break": "dont-break --timeout 30"
-    }
+```json
+"scripts": {
+    "dont-break": "dont-break --timeout 30"
+}
+```
 
 We are assuming a global installation of `dont-break`, and the project lists
 the projects to check in the
@@ -166,15 +201,17 @@ To run `dont-break` on CircleCI, I created the
 [circle.yml](https://github.com/bahmutov/boggle/blob/master/circle.yml) file.
 It should be clear what it does - installs `dont-break`, and runs the npm script command.
 
-    machine:
-      node:
-        version: "0.12"
-    dependencies:
-      post:
-        - npm install -g dont-break
-    test:
-      override:
-        - npm run dont-break
+```yml
+machine:
+  node:
+    version: "0.12"
+dependencies:
+  post:
+    - npm install -g dont-break
+test:
+  override:
+    - npm run dont-break
+```
 
 To make the status visible, I included the CircleCI badges in the README file.
 
@@ -199,6 +236,9 @@ This project is tested end to end using two small projects:
 [boggle-connect](https://www.npmjs.com/package/boggle-connect).
 
 To see open github issues, use command `npm run issues`
+
+To see verbose log message, run with `DEBUG=dont-break ...` environment
+variable.
 
 ### Small print
 

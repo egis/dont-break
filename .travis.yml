@@ -3,12 +3,19 @@ language: node_js
 cache:
   directories:
     - node_modules
+notifications:
+  email: false
 node_js:
-  - "0.10"
-  - "0.11"
-  - "0.12"
-branches:
-  only:
-    - master
+  - '6'
 before_script:
-  - npm install -g grunt-cli
+  - npm prune
+script:
+  - npm test
+  - echo Unit tests passed, running end to end tests
+  - npm run e2e
+after_success:
+  - npm run size
+  - npm run semantic-release
+branches:
+  except:
+    - /^v\d+\.\d+\.\d+$/
