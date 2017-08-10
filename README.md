@@ -21,10 +21,8 @@ Checks if the node module in the current folder breaks unit tests for specified 
 ## This fork
 
 I needed to make some modifications to be able to use dont-break in my organisation's configuration having private inter-dependent NPM packages. Changes list:
-* when using dont-break for dependent package B that uses package A, allowed B's package.json to
-  * use A as peerDependency
-* cancelled pre-testing B in its current state - this step is already done in B release cycle. Our packages' tests take plenty of time so it was important to not have extra work here.
-* upgraded npm-utils dependency (now it's 1.5.1 instead of 0.3.0).
+* made it support custom test commands for dependent projects
+* when using dont-break for dependent package B that uses package A, allowed B's package.json to use A as peerDependency
 
 ## Install
 If you want to give this fork a try put in package.json:
